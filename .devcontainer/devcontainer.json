@@ -1,0 +1,27 @@
+{
+    "name": "Metal FS Operator",
+    "image": "metalfs/operator-base:webpack",
+	"runArgs": [
+		// Enable X11 forwarding
+		"-e",
+		"DISPLAY=${env:DISPLAY}",
+		"-v",
+		"/tmp/.X11-unix:/tmp/.X11-unix",
+		// Allow mounting FUSE volumes
+		"--device",
+		"/dev/fuse",
+		"--cap-add",
+		"SYS_ADMIN",
+		"--security-opt",
+		"apparmor=unconfined",
+		// Allow debugging code (e.g. gdb inside Vivado HLS)
+		"--cap-add",
+		"SYS_PTRACE",
+		"--security-opt",
+		"seccomp=unconfined"
+	],
+	// There is a name collision with Ubuntu Snaps, which eventually results in VS Code
+	// removing the image-defined SNAP_ROOT environment variable.
+	// We can work around this by explicitly loading it from the bash profile.
+	"postCreateCommand": "echo export SNAP_ROOT=/frameworks/snap >> ~/.snap_profile"
+}

@@ -1,0 +1,14 @@
+kind: pipeline
+type: docker
+name: default
+
+steps:
+- name: testbench
+  image: metalfs/operator-base:webpack
+  commands:
+    - /bin/bash -c "make test"
+
+- name: simulation-model
+  image: metalfs/operator-base:webpack
+  commands:
+    - make model

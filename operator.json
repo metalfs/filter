@@ -1,0 +1,18 @@
+{
+  "main": "hls_operator_filter",
+  "description": "Convert bitmap to grayscale",
+  "options": {
+    "lower-bound": {
+      "short": "l",
+      "type": "int",
+      "description": "Pass on values greater than or equal to this parameter",
+      "offset": 256
+    },
+    "upper-bound": {
+      "short": "u",
+      "type": "int",
+      "description": "Pass on values less than or equal to this parameter",
+      "offset": 272
+    }
+  }
+}

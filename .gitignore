@@ -1,0 +1,10 @@
+image.json
+image_compiled.json
+*.log
+*.jou
+apples.out.bmp
+*.bin
+*.tcl
+hls_cflags.*
+hls_*/
+hls_impl_ip
