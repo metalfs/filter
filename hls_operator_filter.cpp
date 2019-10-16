@@ -115,7 +115,7 @@ void shift_multi_stream(MaskedStream &in, ShiftedStream &out) {
 void compact_multi_stream(ShiftedStream &in, mtl_stream &out) {
   ShiftedStreamElement input;
   mtl_stream_element output;
-  snap_bool_t has_output = 0;
+  snap_bool_t is_done = 0;
 
   DoubleRow  buffer = 0;
   ValueCount counter = 0;
@@ -127,18 +127,19 @@ void compact_multi_stream(ShiftedStream &in, mtl_stream &out) {
     counter += input.count;
 
     if (counter >= VALUE_COUNT) {
+      is_done = input.last && (counter == VALUE_COUNT);
+
       output.data = buffer(VUP(VALUE_COUNT-1), VLO(0));
       output.keep = (mtl_stream_keep)-1;
-      output.last = input.last && (counter == VALUE_COUNT);
+      output.last = is_done;
       out.write(output);
-      has_output = 1;
 
       buffer(VUP(VALUE_COUNT-1), VLO(0)) = buffer(VUP(2*VALUE_COUNT-1), VLO(VALUE_COUNT));
       counter -= VALUE_COUNT;
     }
   } while (!input.last);
 
-  if (counter > 0 || !has_output) {
+  if (!is_done) {
     output.data = buffer(VUP(VALUE_COUNT-1), VLO(0));
     output.keep = (mtl_stream_keep)((1 << (8*counter)) - 1);
     output.last = 1;
@@ -170,6 +171,36 @@ void compact_single_stream(MaskedStream &in, mtl_stream &out) {
   } while (!output.last);
 }
 
+void fix_empty_stream(mtl_stream &in, mtl_stream &out) {
+  mtl_stream_element input;
+  mtl_stream_element buffer;
+  buffer.data = 0;
+  buffer.keep = 1; // in case of empty streams, that ensures that at least one 0 byte is sent to output
+  snap_bool_t has_buffer = 0;
+
+  do {
+#pragma HLS PIPELINE
+    input = in.read();
+
+    if (input.keep != 0) {
+      if (has_buffer) {
+        out.write(buffer);
+      }
+      buffer = input;
+      has_buffer = 1;
+    }
+
+    if (input.last && input.keep == 0) {
+      buffer.last = 1;
+      has_buffer = 1;
+    }
+  } while (!input.last);
+
+  if (has_buffer) {
+    out.write(buffer);
+  }
+}
+
 void hls_operator_filter(mtl_stream &in, mtl_stream &out, Value lower_bound, Value upper_bound) {
 #pragma HLS INTERFACE axis port=in name=axis_input
 #pragma HLS INTERFACE axis port=out name=axis_output
@@ -179,16 +210,18 @@ void hls_operator_filter(mtl_stream &in, mtl_stream &out, Value lower_bound, Val
 
   MaskedStream masked;
   ShiftedStream shifted;
+  mtl_stream compact;
 
 #pragma HLS DATAFLOW
 
   filter_stream(in, masked, lower_bound, upper_bound);
 #if VALUE_COUNT > 1
   shift_multi_stream(masked, shifted);
-  compact_multi_stream(shifted, out);
+  compact_multi_stream(shifted, compact);
 #else
-  compact_single_stream(masked, out);
+  compact_single_stream(masked, compact);
 #endif
+  fix_empty_stream(compact, out);
 }
 
 #include "testbench.cpp"

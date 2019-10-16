@@ -1,25 +1,33 @@
 #ifndef __SYNTHESIS__
 
+#define TEST_ROWS 64
+
 int main() {
   mtl_stream in;
   mtl_stream out;
 
-  FILE * infile = fopen("../../../../testl.bin", "r");
-  size_t readBytes;
+
   mtl_stream_element element;
-  do {
-    readBytes = fread(&(element.data), 1, 64, infile);
+  for (int i = 0; i < TEST_ROWS; ++i) {
+	element.data = 0;
+    for (int j = 0; j < VALUE_COUNT; ++j) {
+    	element.data(VUP(j), VLO(j)) = (13*i) % 16;
+    }
     element.keep = (mtl_stream_keep)-1;
-    element.last = (readBytes != 8);
+    element.last = (i == TEST_ROWS-1);
     in.write(element);
-  } while (!element.last);
+  }
 
   hls_operator_filter(in, out, 2, 3);
 
-  FILE * outfile = fopen("../../../../testl.filtered.bin", "w");
   do {
     element = out.read();
-    fwrite(&(element.data), 1, 64, outfile);
+    if (element.last) {
+    	std::cout << "LAST ";
+    } else {
+    	std::cout << "     ";
+    }
+    std::cout << std::hex << element.data << " | " << element.keep << std::endl;
   } while (!element.last);
 
   return 0;
