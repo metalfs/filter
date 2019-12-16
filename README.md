@@ -2,9 +2,22 @@
 
 This operator filters the incoming stream of integer values by a range that is defined by a lower bound (inclusive) and an upper bound (inclusive).
 
+For general information on Metal FS, please visit the [project website](https://metalfs.github.io).
+
 ## Installation
 ```
 npm install @metalfs/filter
+```
+
+Example `image.json`:
+```json
+{
+    "streamBytes": 8,
+    "target": "SNAP/WebPACK_Sim",
+    "operators": {
+        "filter": "@metalfs/filter"
+    }
+}
 ```
 
 ## Operator Details
@@ -21,3 +34,7 @@ Stream Width | Adaptable
  -| -    | -
 lower-bound | uint64 | Pass on values greater than or equal to this parameter
 upper-bound | uint64 | Pass on values less than or equal to this parameter
+
+## See also
+
+- [Aggregate Operator](https://github.com/metalfs/aggregate)
