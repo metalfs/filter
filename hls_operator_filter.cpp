@@ -15,18 +15,19 @@ typedef ap_uint<VALUE_BITS> Value;
 typedef ap_uint<VALUE_BITS*VALUE_COUNT> Row;
 typedef ap_uint<VALUE_BITS*VALUE_COUNT*2> DoubleRow;
 typedef ap_uint<VALUE_COUNT> Mask;
+typedef ap_uint<1> ap_bool;
 
 typedef struct {
   Row data;
   Mask mask;
-  snap_bool_t last;
+  ap_bool last;
 } MaskedStreamElement;
 typedef hls::stream<MaskedStreamElement> MaskedStream;
 
 typedef struct {
   Row data;
   ValueCount count;
-  snap_bool_t last;
+  ap_bool last;
 } ShiftedStreamElement;
 typedef hls::stream<ShiftedStreamElement> ShiftedStream;
 
@@ -115,7 +116,7 @@ void shift_multi_stream(MaskedStream &in, ShiftedStream &out) {
 void compact_multi_stream(ShiftedStream &in, mtl_stream &out) {
   ShiftedStreamElement input;
   mtl_stream_element output;
-  snap_bool_t is_done = 0;
+  ap_bool is_done = 0;
 
   DoubleRow  buffer = 0;
   ValueCount counter = 0;
@@ -176,7 +177,7 @@ void fix_empty_stream(mtl_stream &in, mtl_stream &out) {
   mtl_stream_element buffer;
   buffer.data = 0;
   buffer.keep = 1; // in case of empty streams, that ensures that at least one 0 byte is sent to output
-  snap_bool_t has_buffer = 0;
+  ap_bool has_buffer = 0;
 
   do {
 #pragma HLS PIPELINE

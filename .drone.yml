@@ -4,11 +4,11 @@ name: default
 
 steps:
 - name: testbench
-  image: metalfs/operator-base:webpack
+  image: metalfs/sdk:webpack-psl8
   commands:
     - /bin/bash -c "make test"
 
 - name: simulation-model
-  image: metalfs/operator-base:webpack
+  image: metalfs/sdk:webpack-psl8
   commands:
     - make model
